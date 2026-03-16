@@ -1,8 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { getEventColor } from '@/lib/sources';
+
+const StatsBar = dynamic(() => import('./StatsBar'), { ssr: false });
+const EventCharts = dynamic(() => import('./EventCharts'), { ssr: false });
 
 // Leaflet must be dynamically imported (no SSR) because it uses window
 const MapWithNoSSR = dynamic(() => import('./MapInner'), { ssr: false });
@@ -254,6 +257,12 @@ export default function ConflictMap() {
           acleddata.com →
         </a>
       </div>
+
+      {/* Stats bar */}
+      <StatsBar events={eventsData?.events || []} />
+
+      {/* Charts */}
+      <EventCharts events={eventsData?.events || []} />
     </div>
   );
 }

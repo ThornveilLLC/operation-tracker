@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 
 // All heavy components load client-side only
 const TopBar = dynamic(() => import('@/components/TopBar'), { ssr: false });
+const OilSparkline = dynamic(() => import('@/components/OilSparkline'), { ssr: false });
 const ConflictMap = dynamic(() => import('@/components/ConflictMap'), { ssr: false });
 const HeadlinesSidebar = dynamic(() => import('@/components/HeadlinesSidebar'), { ssr: false });
 const BottomTabs = dynamic(() => import('@/components/BottomTabs'), { ssr: false });
@@ -21,12 +22,16 @@ export default function Home() {
       {/* Top status bar — fixed */}
       <TopBar />
 
-      {/* Main content — starts below top bar */}
+      {/* Oil sparkline sub-bar */}
+      <div style={{ marginTop: '48px', flexShrink: 0 }}>
+        <OilSparkline />
+      </div>
+
+      {/* Main content */}
       <div
         style={{
           display: 'flex',
           flex: 1,
-          marginTop: '48px',
           overflow: 'hidden',
           minHeight: 0,
         }}

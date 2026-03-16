@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
 import { getEventColor } from '@/lib/sources';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 interface AcledEvent {
@@ -24,57 +25,82 @@ interface Props {
   events: AcledEvent[];
 }
 
+// Inject pulsing CSS into leaflet map
+function PulseStyle() {
+  const map = useMap();
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes ripple {
+        0% { transform: scale(1); opacity: 0.8; }
+        100% { transform: scale(3); opacity: 0; }
+      }
+      .pulse-marker {
+        border-radius: 50%;
+        position: relative;
+      }
+      .pulse-marker::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        animation: ripple 2s ease-out infinite;
+        border: 2px solid currentColor;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
+  return null;
+}
+
 function PopupContent({ event }: { event: AcledEvent }) {
+  const color = getEventColor(event.event_type);
   return (
-    <div style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '11px', color: 'var(--text-primary)', maxWidth: '260px' }}>
-      <div style={{ fontWeight: 700, color: getEventColor(event.event_type), marginBottom: '6px', fontSize: '12px' }}>
+    <div style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '11px', color: '#e8eaf0', maxWidth: '260px' }}>
+      <div style={{
+        fontWeight: 700, color, marginBottom: '8px', fontSize: '12px',
+        paddingBottom: '6px', borderBottom: '1px solid #1e2530',
+        display: 'flex', alignItems: 'center', gap: '6px',
+      }}>
+        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: color, display: 'inline-block', flexShrink: 0 }} />
         {event.event_type}
         {event.sub_event_type && ` — ${event.sub_event_type}`}
       </div>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <tbody>
-          <tr>
-            <td style={{ color: '#6b7a8d', paddingRight: '8px', verticalAlign: 'top' }}>Location:</td>
-            <td>{event.location}, {event.country}</td>
-          </tr>
-          <tr>
-            <td style={{ color: '#6b7a8d', paddingRight: '8px', verticalAlign: 'top' }}>Date:</td>
-            <td>{event.event_date}</td>
-          </tr>
-          {event.actor1 && (
-            <tr>
-              <td style={{ color: '#6b7a8d', paddingRight: '8px', verticalAlign: 'top' }}>Actor 1:</td>
-              <td>{event.actor1}</td>
+          {(
+            [
+              ['Location', `${event.location}, ${event.country}`],
+              ['Date', event.event_date],
+              ...(event.actor1 ? [['Actor 1', event.actor1]] : []),
+              ...(event.actor2 ? [['Actor 2', event.actor2]] : []),
+            ] as [string, string][]
+          ).map(([k, v]) => (
+            <tr key={k}>
+              <td style={{ color: '#6b7a8d', paddingRight: '8px', paddingBottom: '3px', verticalAlign: 'top', whiteSpace: 'nowrap' }}>{k}:</td>
+              <td style={{ paddingBottom: '3px' }}>{v}</td>
             </tr>
-          )}
-          {event.actor2 && (
-            <tr>
-              <td style={{ color: '#6b7a8d', paddingRight: '8px', verticalAlign: 'top' }}>Actor 2:</td>
-              <td>{event.actor2}</td>
-            </tr>
-          )}
+          ))}
           <tr>
             <td style={{ color: '#6b7a8d', paddingRight: '8px', verticalAlign: 'top' }}>Fatalities:</td>
             <td>
-              <span style={{ color: event.fatalities && event.fatalities !== '0' ? '#c0392b' : 'inherit' }}>
+              <span style={{ color: parseInt(event.fatalities) > 0 ? '#c0392b' : '#e8eaf0', fontWeight: 700 }}>
                 {event.fatalities ?? '—'}
               </span>
-              {' '}
-              <span style={{ color: '#6b7a8d', fontSize: '9px' }}>(Source: ACLED)</span>
-              {' '}
-              <span style={{ color: '#6b7a8d', fontSize: '9px' }}>(Figures disputed)</span>
+              <span style={{ color: '#6b7a8d', fontSize: '9px', marginLeft: '4px' }}>(ACLED · disputed)</span>
             </td>
           </tr>
         </tbody>
       </table>
       {event.notes && (
-        <div style={{ marginTop: '6px', borderTop: '1px solid #1e2530', paddingTop: '6px', fontSize: '10px', color: '#6b7a8d', lineHeight: 1.4 }}>
-          {event.notes.slice(0, 200)}{event.notes.length > 200 ? '...' : ''}
+        <div style={{ marginTop: '8px', borderTop: '1px solid #1e2530', paddingTop: '6px', fontSize: '10px', color: '#6b7a8d', lineHeight: 1.4 }}>
+          {event.notes.slice(0, 200)}{event.notes.length > 200 ? '…' : ''}
         </div>
       )}
       {event.source && (
-        <div style={{ marginTop: '4px', fontSize: '9px', color: '#444' }}>
-          Source: {event.source} via ACLED
+        <div style={{ marginTop: '4px', fontSize: '9px', color: '#3a3a3a' }}>
+          via {event.source} / ACLED
         </div>
       )}
     </div>
@@ -89,6 +115,7 @@ export default function MapInner({ events }: Props) {
       style={{ height: '100%', width: '100%', background: '#0d1117' }}
       zoomControl={true}
     >
+      <PulseStyle />
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -102,7 +129,9 @@ export default function MapInner({ events }: Props) {
 
         const color = getEventColor(event.event_type || event.sub_event_type || '');
         const fatalities = parseInt(event.fatalities) || 0;
-        const radius = Math.min(4 + Math.sqrt(fatalities) * 1.5, 20);
+        const baseRadius = 4 + Math.sqrt(fatalities) * 1.5;
+        const radius = Math.min(baseRadius, 22);
+        const isHighFatality = fatalities > 10;
 
         return (
           <CircleMarker
@@ -112,15 +141,42 @@ export default function MapInner({ events }: Props) {
             pathOptions={{
               color: color,
               fillColor: color,
-              fillOpacity: 0.7,
-              weight: 1,
-              opacity: 0.9,
+              fillOpacity: isHighFatality ? 0.85 : 0.65,
+              weight: isHighFatality ? 2 : 1,
+              opacity: 1,
             }}
           >
             <Popup>
               <PopupContent event={event} />
             </Popup>
           </CircleMarker>
+        );
+      })}
+
+      {/* Outer pulse rings for high-fatality events */}
+      {events.map((event, idx) => {
+        const lat = parseFloat(event.latitude);
+        const lng = parseFloat(event.longitude);
+        if (isNaN(lat) || isNaN(lng)) return null;
+        const fatalities = parseInt(event.fatalities) || 0;
+        if (fatalities < 10) return null;
+
+        const color = getEventColor(event.event_type || '');
+        return (
+          <CircleMarker
+            key={`pulse-${idx}`}
+            center={[lat, lng]}
+            radius={Math.min(6 + Math.sqrt(fatalities) * 2, 30)}
+            pathOptions={{
+              color: color,
+              fillColor: 'transparent',
+              fillOpacity: 0,
+              weight: 1,
+              opacity: 0.3,
+              dashArray: '4 4',
+            }}
+            interactive={false}
+          />
         );
       })}
     </MapContainer>
