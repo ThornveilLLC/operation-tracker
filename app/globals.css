@@ -1,26 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-primary: #0a0c0f;
+  --bg-secondary: #111418;
+  --bg-card: #141820;
+  --border: #1e2530;
+  --accent-red: #c0392b;
+  --accent-orange: #e67e22;
+  --accent-green: #27ae60;
+  --accent-blue: #2980b9;
+  --accent-yellow: #f1c40f;
+  --accent-purple: #8e44ad;
+  --text-primary: #e8eaf0;
+  --text-muted: #6b7a8d;
+  --text-data: #a8d8ea;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'IBM Plex Sans', sans-serif;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Scanline effect */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Pulsing red dot */
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.7); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(192, 57, 43, 0); }
+}
+.pulse-red {
+  animation: pulse-red 1.5s ease-in-out infinite;
+}
+
+/* News ticker */
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-content {
+  animation: ticker-scroll 80s linear infinite;
+  white-space: nowrap;
+  display: inline-flex;
+}
+.ticker-content:hover {
+  animation-play-state: paused;
+}
+
+/* Skeleton loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-card) 25%, var(--border) 50%, var(--bg-card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* Data font */
+.font-data {
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text-data);
+}
+
+/* Card styles */
+.intel-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+/* Map container */
+.leaflet-container {
+  background: #0d1117 !important;
+}
+
+/* Override leaflet popup */
+.leaflet-popup-content-wrapper {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 4px !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 11px !important;
+}
+.leaflet-popup-tip {
+  background: var(--bg-card) !important;
+}
+.leaflet-popup-close-button {
+  color: var(--text-muted) !important;
 }
