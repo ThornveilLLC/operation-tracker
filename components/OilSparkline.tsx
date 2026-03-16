@@ -38,10 +38,13 @@ export default function OilSparkline() {
 
   if (!data) return null;
 
-  const up = (data.change24h ?? 0) >= 0;
+  const latestPrice = data.latestPrice != null ? parseFloat(String(data.latestPrice)) : null;
+  const change24h = data.change24h != null ? parseFloat(String(data.change24h)) : null;
+  const changePct = data.changePct != null ? parseFloat(String(data.changePct)) : null;
+  const up = (change24h ?? 0) >= 0;
   const color = up ? '#c0392b' : '#27ae60';
   const arrow = up ? '▲' : '▼';
-  const chartData = (data.data || []).filter(d => d.value != null);
+  const chartData = (data.data || []).filter(d => d.value != null).map(d => ({ ...d, value: parseFloat(String(d.value)) }));
 
   return (
     <div style={{
@@ -55,16 +58,16 @@ export default function OilSparkline() {
           WTI CRUDE OIL
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-          {data.latestPrice != null ? (
+          {latestPrice != null ? (
             <>
               <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '18px', fontWeight: 700, color: 'var(--text-data)' }}>
-                ${data.latestPrice.toFixed(2)}
+                ${latestPrice.toFixed(2)}
               </span>
               <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '11px', color }}>
-                {arrow} {Math.abs(data.changePct ?? 0).toFixed(2)}%
+                {arrow} {Math.abs(changePct ?? 0).toFixed(2)}%
               </span>
               <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '10px', color: 'var(--text-muted)' }}>
-                ({data.change24h != null ? (up ? '+' : '') + data.change24h.toFixed(2) : '—'} USD)
+                ({change24h != null ? (up ? '+' : '') + change24h.toFixed(2) : '—'} USD)
               </span>
             </>
           ) : (

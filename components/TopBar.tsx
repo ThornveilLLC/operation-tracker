@@ -217,7 +217,7 @@ export default function TopBar() {
                     fontWeight: 600,
                   }}
                 >
-                  ${oilData.latestPrice.toFixed(2)}
+                  ${parseFloat(String(oilData.latestPrice)).toFixed(2)}
                 </span>
                 {oilArrow && (
                   <span
@@ -227,7 +227,7 @@ export default function TopBar() {
                       color: oilColor,
                     }}
                   >
-                    {oilArrow} {Math.abs(oilData.changePct ?? 0).toFixed(2)}%
+                    {oilArrow} {Math.abs(parseFloat(String(oilData.changePct ?? 0))).toFixed(2)}%
                   </span>
                 )}
               </>
